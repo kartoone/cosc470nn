@@ -1,5 +1,6 @@
     # ide specific files
     .idea/
+    .idea/*
     nbproject/
 
      # maven specific files
