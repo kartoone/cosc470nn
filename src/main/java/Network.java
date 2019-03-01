@@ -41,9 +41,6 @@ public class Network {
         for (int i=0; i<biases.length; i++) { // whether we use biases or weights doesn't matter ... they have same length
             INDArray b = biases[i];  // layer biases
             INDArray w = weights[i]; // weights from previous layer to current layer
-            if (i==biases.length-1) {
-                System.out.println(a);
-            }
             a = sigmoid(w.mmul(a).add(b)); //
         }
         return a;
@@ -55,9 +52,9 @@ public class Network {
         // each row has two columns ... row[0] is "x", i.e., INDArray column vector with all the input values for one test
         // row[1] is "y", ie., the INDArray desired output activations
         int correct = 0;
-        for (int i=0; i<test_data.length; i++) {
-            INDArray x = test_data[i][0];
-            INDArray y = test_data[i][1];
+        for (int i=0; i<test_data[0].length; i++) {
+            INDArray x = test_data[0][i];
+            INDArray y = test_data[1][i];
             if (feedforward(x).equals(y)) {
                 correct++;
             }
@@ -76,15 +73,81 @@ public class Network {
     public void SGD(INDArray training_data[][], int epochs, int batchsize, double eta, INDArray test_data[][]) {
         int testdatasize = test_data.length;
         // first shuffle the training data so that all our batches will be random order
-        shuffle(training_data);
+        training_data[0] = shuffle(training_data[0]);
+        training_data[1] = shuffle(training_data[1]);
         for (int i=0; i<epochs; i++) {
-            INDArray batch[][] = java.util.Arrays.copyOfRange(training_data,batchsize*i, batchsize*(i+1));
+            INDArray batchx[] = java.util.Arrays.copyOfRange(training_data[0],batchsize*i, batchsize*(i+1));
+            INDArray batchy[] = java.util.Arrays.copyOfRange(training_data[1],batchsize*i, batchsize*(i+1));
+            INDArray batch[][] = new INDArray[][] {batchx, batchy};
             update_mini_batch(batch, eta);
+            int correct = evaluate(test_data);
+            System.out.println(correct + " correct, epoch " + i);
         }
+
     }
 
     public void update_mini_batch(INDArray batch[][], double eta) {
-        // start here nabla_b and nabla_w should have same type as this.biases and this.weights
+        // nabla_b and nabla_w should have same type as this.biases and this.weights
+        INDArray nabla_b[] = new INDArray[biases.length];
+        INDArray nabla_w[] = new INDArray[weights.length];
+        for (int i=0; i<nabla_b.length; i++) {
+            nabla_b[i] = Nd4j.zeros(biases[i].shape());
+            nabla_w[i] = Nd4j.zeros(weights[i].shape());
+        }
+        for (int i=0; i<batch[0].length; i++) {
+            INDArray x = batch[0][i];
+            INDArray y = batch[1][i];
+            INDArray delta_nabla[][] = backprop(x,y);
+            for (int j=0; j<nabla_b.length; j++) {
+                nabla_b[j].add(delta_nabla[0][j]); // add the delta to each nabla
+                nabla_w[j].add(delta_nabla[1][j]);
+            }
+        }
+        for (int i=0; i<weights.length; i++) {
+            weights[i].add(nabla_w[i].mul(-eta/batch.length));
+            biases[i].add(nabla_b[i].mul(-eta/batch.length));
+        }
+    }
+
+    public INDArray[][] backprop(INDArray x, INDArray y) {
+        // nabla_b and nabla_w should have same type as this.biases and this.weights
+        INDArray nabla_b[] = new INDArray[biases.length];
+        INDArray nabla_w[] = new INDArray[weights.length];
+        for (int i=0; i<nabla_b.length; i++) {
+            nabla_b[i] = Nd4j.zeros(biases[i].shape());
+            nabla_w[i] = Nd4j.zeros(weights[i].shape());
+        }
+        // feedforward
+        INDArray activation = x;
+        INDArray activations[] = new INDArray[biases.length+1]; // total number of layers including input layer
+        INDArray zs[] = new INDArray[biases.length];
+        activations[0] = activation;
+        for (int i=1; i<activations.length; i++) {
+            INDArray b = biases[i-1];
+            INDArray w = weights[i-1];
+            INDArray z = w.mmul(activation).add(b);
+            zs[i-1] = z; // append z
+            activation = sigmoid(z);
+            activations[i] = activation;
+        }
+        // activation will be referencing the last activation ... equiv to activations[-1]
+        INDArray delta = cost_derivative(activation, y).mul(sigmoid_prime(zs[zs.length-1]));
+        nabla_b[nabla_b.length-1] = delta;
+        nabla_w[nabla_w.length-1] = delta.mmul(activations[activations.length-2].transpose());
+
+        // reverse pass
+        for (int l=2; l<num_layers; l++) {
+            INDArray z = zs[zs.length-l];
+            INDArray sp = sigmoid_prime(z);
+            delta = weights[weights.length-l+1].transpose().mmul(delta).mul(sp);
+            nabla_b[nabla_b.length-l] = delta;
+            nabla_w[nabla_w.length-l] = delta.mmul(activations[activations.length-l-1].transpose());
+        }
+        return new INDArray[][] { nabla_b, nabla_w };
+    }
+
+    public INDArray cost_derivative(INDArray a, INDArray y) {
+        return a.sub(y);
     }
 
     // sigmoidifies "z" already calculated in feedforward
@@ -105,15 +168,15 @@ public class Network {
     }
 
     // Other utility functions ... shuffle for shuffling training data
-    private INDArray[][] shuffle(INDArray[][] input) {
+    private INDArray[] shuffle(INDArray[] input) {
         // easiest way is temporarily convert training_data to ArrayList<training_data[]> and then call shuffle
-        java.util.ArrayList<INDArray[]> tdata = new java.util.ArrayList<>(input.length);
+        java.util.ArrayList<INDArray> tdata = new java.util.ArrayList<>(input.length);
         for (int i=0; i<input.length; i++) {
             tdata.add(input[i]);
         }
         java.util.Collections.shuffle(tdata);
-        // now stuff back the newly shuffled list into a 2d array
-        INDArray output[][] = new INDArray[input.length][2]; // 2 because tuples
+        // now stuff back the newly shuffled list into an array
+        INDArray output[] = new INDArray[input.length];
         for (int i=0; i<input.length; i++) {
             output[i] = tdata.get(i);
         }
