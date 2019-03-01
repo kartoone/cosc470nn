@@ -13,7 +13,7 @@ public class DigitRecognizer {
         INDArray training_data[][] = new INDArray[][] { parseImageFile(imagefile, 60000), parseLabelFile(labelfile, 60000) };
         INDArray test_data[][] =  new INDArray[][] { parseImageFile(testimagefile, 10000), parseLabelFile(testlabelfile, 10000) };
 
-        Network net = new Network(new int[]{784, 15, 10});
+        Network net = new Network(new int[]{784, 30, 10});
 
         net.SGD(training_data, 30, 10, 3.0, test_data);
 

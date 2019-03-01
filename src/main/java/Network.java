@@ -55,11 +55,25 @@ public class Network {
         for (int i=0; i<test_data[0].length; i++) {
             INDArray x = test_data[0][i];
             INDArray y = test_data[1][i];
-            if (feedforward(x).equals(y)) {
+            INDArray out = predict(feedforward(x));
+            if (out.equals(y)) {
                 correct++;
             }
         }
         return correct;
+    }
+
+    // converts the array to have a 1 in the highest position and 0 in all other positions
+    public INDArray predict(INDArray out) {
+        Number max = out.maxNumber();
+        for(int i=0; i<out.rows(); i++) {
+            if (out.getDouble(i)==(max.doubleValue())) {
+                out.putScalar(i, 1, 1);
+            } else {
+                out.putScalar(i, 1, 0);
+            }
+        }
+        return out;
     }
 
     /**
@@ -73,13 +87,15 @@ public class Network {
     public void SGD(INDArray training_data[][], int epochs, int batchsize, double eta, INDArray test_data[][]) {
         int testdatasize = test_data.length;
         // first shuffle the training data so that all our batches will be random order
-        training_data[0] = shuffle(training_data[0]);
-        training_data[1] = shuffle(training_data[1]);
         for (int i=0; i<epochs; i++) {
-            INDArray batchx[] = java.util.Arrays.copyOfRange(training_data[0],batchsize*i, batchsize*(i+1));
-            INDArray batchy[] = java.util.Arrays.copyOfRange(training_data[1],batchsize*i, batchsize*(i+1));
-            INDArray batch[][] = new INDArray[][] {batchx, batchy};
-            update_mini_batch(batch, eta);
+            training_data[0] = shuffle(training_data[0]);
+            training_data[1] = shuffle(training_data[1]);
+            for (int j=0; j<(training_data[0].length-1)/batchsize; j++) {
+                INDArray batchx[] = java.util.Arrays.copyOfRange(training_data[0],batchsize*j, batchsize*(j+1));
+                INDArray batchy[] = java.util.Arrays.copyOfRange(training_data[1],batchsize*j, batchsize*(j+1));
+                INDArray batch[][] = new INDArray[][] {batchx, batchy};
+                update_mini_batch(batch, eta);
+            }
             int correct = evaluate(test_data);
             System.out.println(correct + " correct, epoch " + i);
         }
@@ -99,14 +115,22 @@ public class Network {
             INDArray y = batch[1][i];
             INDArray delta_nabla[][] = backprop(x,y);
             for (int j=0; j<nabla_b.length; j++) {
-                nabla_b[j].add(delta_nabla[0][j]); // add the delta to each nabla
-                nabla_w[j].add(delta_nabla[1][j]);
+                nabla_b[j] = nabla_b[j].add(delta_nabla[0][j]); // add the delta to each nabla
+                nabla_w[j] = nabla_w[j].add(delta_nabla[1][j]);
             }
         }
         for (int i=0; i<weights.length; i++) {
-            weights[i].add(nabla_w[i].mul(-eta/batch.length));
-            biases[i].add(nabla_b[i].mul(-eta/batch.length));
+//            INDArray adjw = nabla_w[i].mul(-eta/batch.length);
+//            System.out.println(adjw);
+            INDArray adjb = nabla_b[i].mul(-eta/batch.length);
+            System.out.println(adjb);
+            weights[i] = weights[i].add(nabla_w[i].mul(-eta/batch.length));
+            biases[i] = biases[i].add(nabla_b[i].mul(-eta/batch.length));
         }
+    }
+
+    private void debugl(long o[]) {
+        System.out.println(java.util.Arrays.toString(o));
     }
 
     public INDArray[][] backprop(INDArray x, INDArray y) {
