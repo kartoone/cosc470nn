@@ -17,8 +17,8 @@ public class Network {
         num_layers = sizes.length;
         // init the individual layer biases
         for (int i=1; i<sizes.length; i++) {
-//            biases[i-1] = Nd4j.randn(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
-            biases[i-1] = Nd4j.zeros(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
+            biases[i-1] = Nd4j.randn(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
+//            biases[i-1] = Nd4j.zeros(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
         }
         for (int i=0; i<biases.length; i++) {
             System.out.println("Layer " + (i+1) + " biases:");
@@ -27,8 +27,8 @@ public class Network {
 
         // init the individual layer weights (layer i rows x layer i-1 cols ... simplifies math)
         for (int i=1; i<sizes.length; i++) {
-//            weights[i-1] = Nd4j.randn(sizes[i],sizes[i-1]);
-            weights[i-1] = Nd4j.zeros(sizes[i],sizes[i-1]);
+            weights[i-1] = Nd4j.randn(sizes[i],sizes[i-1]);
+//            weights[i-1] = Nd4j.zeros(sizes[i],sizes[i-1]);
         }
         for (int i=0; i<weights.length; i++) {
             System.out.println("Layer " + (i+1) + " weights: " + java.util.Arrays.toString(weights[i].shape()));
@@ -88,11 +88,15 @@ public class Network {
      * Test_data is same format as training_data but is evaluated after each epoch to display training improvement
      */
     public void SGD(INDArray training_data[][], int epochs, int batchsize, double eta, INDArray test_data[][]) {
-        int testdatasize = test_data.length;
+        int testdatasize = test_data[0].length;
         // first shuffle the training data so that all our batches will be random order
         for (int i=0; i<epochs; i++) {
+            // The math was correct, but here was the problem!!!
+            // I was shuffling the data independently, which loses the connection b/t
+            // the image data (x - training_data[0]) and the labels (y - training_data[1])
 //            training_data[0] = shuffle(training_data[0]);
 //            training_data[1] = shuffle(training_data[1]);
+            training_data = shuffle(training_data);
             for (int j=0; j<(training_data[0].length-1)/batchsize; j++) {
                 INDArray batchx[] = java.util.Arrays.copyOfRange(training_data[0],batchsize*j, batchsize*(j+1));
                 INDArray batchy[] = java.util.Arrays.copyOfRange(training_data[1],batchsize*j, batchsize*(j+1));
@@ -196,18 +200,20 @@ public class Network {
     }
 
     // Other utility functions ... shuffle for shuffling training data
-    private INDArray[] shuffle(INDArray[] input) {
-        // easiest way is temporarily convert training_data to ArrayList<training_data[]> and then call shuffle
-        java.util.ArrayList<INDArray> tdata = new java.util.ArrayList<>(input.length);
-        for (int i=0; i<input.length; i++) {
-            tdata.add(input[i]);
+    private INDArray[][] shuffle(INDArray[][] input) {
+        // create an indexlist of all the indices, shuffle that, and then put the training data into two new INDArray[]
+        // in the order in the shuffled indexlist
+        java.util.List<Integer> indexArray = new java.util.ArrayList<>();
+        for (int i=0; i<input[0].length; i++) {
+            indexArray.add(i);
         }
-        java.util.Collections.shuffle(tdata);
-        // now stuff back the newly shuffled list into an array
-        INDArray output[] = new INDArray[input.length];
-        for (int i=0; i<input.length; i++) {
-            output[i] = tdata.get(i);
+        java.util.Collections.shuffle(indexArray);
+        INDArray[] xs = new INDArray[input[0].length];
+        INDArray[] ys = new INDArray[input[1].length]; // should be same length
+        for (int i=0; i<indexArray.size(); i++) {
+            xs[i] = input[0][indexArray.get(i)];
+            ys[i] = input[1][indexArray.get(i)];
         }
-        return output;
+        return new INDArray[][] {xs, ys};
     }
 }
