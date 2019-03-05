@@ -14,9 +14,11 @@ public class Network {
         System.out.println("Constructing neural network with " + sizes.length + " layers.");
         biases = new INDArray[sizes.length-1]; // minus 1 b/c input layer of neurons doesn't have biases
         weights = new INDArray[sizes.length-1];
+        num_layers = sizes.length;
         // init the individual layer biases
         for (int i=1; i<sizes.length; i++) {
-            biases[i-1] = Nd4j.randn(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
+//            biases[i-1] = Nd4j.randn(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
+            biases[i-1] = Nd4j.zeros(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
         }
         for (int i=0; i<biases.length; i++) {
             System.out.println("Layer " + (i+1) + " biases:");
@@ -25,7 +27,8 @@ public class Network {
 
         // init the individual layer weights (layer i rows x layer i-1 cols ... simplifies math)
         for (int i=1; i<sizes.length; i++) {
-            weights[i-1] = Nd4j.randn(sizes[i],sizes[i-1]);
+//            weights[i-1] = Nd4j.randn(sizes[i],sizes[i-1]);
+            weights[i-1] = Nd4j.zeros(sizes[i],sizes[i-1]);
         }
         for (int i=0; i<weights.length; i++) {
             System.out.println("Layer " + (i+1) + " weights: " + java.util.Arrays.toString(weights[i].shape()));
@@ -68,9 +71,9 @@ public class Network {
         Number max = out.maxNumber();
         for(int i=0; i<out.rows(); i++) {
             if (out.getDouble(i)==(max.doubleValue())) {
-                out.putScalar(i, 1, 1);
+                out.putScalar(i, 0, 1);
             } else {
-                out.putScalar(i, 1, 0);
+                out.putScalar(i, 0, 0);
             }
         }
         return out;
@@ -88,8 +91,8 @@ public class Network {
         int testdatasize = test_data.length;
         // first shuffle the training data so that all our batches will be random order
         for (int i=0; i<epochs; i++) {
-            training_data[0] = shuffle(training_data[0]);
-            training_data[1] = shuffle(training_data[1]);
+//            training_data[0] = shuffle(training_data[0]);
+//            training_data[1] = shuffle(training_data[1]);
             for (int j=0; j<(training_data[0].length-1)/batchsize; j++) {
                 INDArray batchx[] = java.util.Arrays.copyOfRange(training_data[0],batchsize*j, batchsize*(j+1));
                 INDArray batchy[] = java.util.Arrays.copyOfRange(training_data[1],batchsize*j, batchsize*(j+1));
@@ -120,12 +123,12 @@ public class Network {
             }
         }
         for (int i=0; i<weights.length; i++) {
-//            INDArray adjw = nabla_w[i].mul(-eta/batch.length);
+            INDArray adjw = nabla_w[i].mul(-eta/batch[0].length);
 //            System.out.println(adjw);
-            INDArray adjb = nabla_b[i].mul(-eta/batch.length);
-            System.out.println(adjb);
-            weights[i] = weights[i].add(nabla_w[i].mul(-eta/batch.length));
-            biases[i] = biases[i].add(nabla_b[i].mul(-eta/batch.length));
+            INDArray adjb = nabla_b[i].mul(-eta/batch[0].length);
+//            System.out.println(adjb);
+            weights[i] = weights[i].sub(nabla_w[i].mul(eta/batch[0].length));
+            biases[i] = biases[i].sub(nabla_b[i].mul(eta/batch[0].length));
         }
     }
 
@@ -177,11 +180,12 @@ public class Network {
     // sigmoidifies "z" already calculated in feedforward
     // z must be z column vector
     public INDArray sigmoid(INDArray z) {
+        INDArray sigmoidified = Nd4j.zeros(z.shape());
         for (int r=0; r<z.rows(); r++) {
             double sig = 1.0/(1+Math.exp(-z.getDouble(r,0)));
-            z.putScalar(new int[]{r,0}, sig); // update a with its sigmoid function output
+            sigmoidified.putScalar(new int[]{r,0}, sig); // update a with its sigmoid function output
         }
-        return z;
+        return sigmoidified;
     }
 
     // called from backprop algorithm

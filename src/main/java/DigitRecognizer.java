@@ -54,7 +54,7 @@ public class DigitRecognizer {
             int fi = 0; // use this index to flatten the 2d array into the 1d pixels array
             for(int row=0; row<rows; row++) {
                 for (int col=0; col<cols; col++) {
-                    pixels.putScalar(fi++, imgbytes[row][col]/255.0); // NN algorithm requires greyscale pixel intensity in range from 0.0 to 1.0
+                    pixels.putScalar(fi++, (imgbytes[row][col]&0xFF)/256.0); // NN algorithm requires greyscale pixel intensity in range from 0.0 to 1.0
                 }
             }
             alltheimages[i] = pixels;
