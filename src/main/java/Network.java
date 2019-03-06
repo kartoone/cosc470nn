@@ -18,7 +18,6 @@ public class Network {
         // init the individual layer biases
         for (int i=1; i<sizes.length; i++) {
             biases[i-1] = Nd4j.randn(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
-//            biases[i-1] = Nd4j.zeros(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
         }
         for (int i=0; i<biases.length; i++) {
             System.out.println("Layer " + (i+1) + " biases:");
@@ -28,7 +27,6 @@ public class Network {
         // init the individual layer weights (layer i rows x layer i-1 cols ... simplifies math)
         for (int i=1; i<sizes.length; i++) {
             weights[i-1] = Nd4j.randn(sizes[i],sizes[i-1]);
-//            weights[i-1] = Nd4j.zeros(sizes[i],sizes[i-1]);
         }
         for (int i=0; i<weights.length; i++) {
             System.out.println("Layer " + (i+1) + " weights: " + java.util.Arrays.toString(weights[i].shape()));
@@ -127,10 +125,6 @@ public class Network {
             }
         }
         for (int i=0; i<weights.length; i++) {
-            INDArray adjw = nabla_w[i].mul(-eta/batch[0].length);
-//            System.out.println(adjw);
-            INDArray adjb = nabla_b[i].mul(-eta/batch[0].length);
-//            System.out.println(adjb);
             weights[i] = weights[i].sub(nabla_w[i].mul(eta/batch[0].length));
             biases[i] = biases[i].sub(nabla_b[i].mul(eta/batch[0].length));
         }
