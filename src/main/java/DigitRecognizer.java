@@ -15,12 +15,18 @@ public class DigitRecognizer {
 
         Network net = new Network(new int[]{784, 30, 10});
 
-        net.SGD(training_data, 30, 10, 3.0, test_data);
+        // train the network
+        net.SGD(training_data, 2, 10, 3.0, test_data);
 
         // let's run our network on randomly generated image
-//        INDArray input = Nd4j.rand(784,1);
-//        INDArray a = net.feedforward(input);
-//        System.out.println(a);
+        INDArray input = Nd4j.rand(784,1);
+        INDArray a = net.feedforward(input);
+        System.out.println(a);
+
+        // open our digitpad window to display the randomly generated image
+        // showing the network's best guess "a"
+        // and allow the user to interact with the digitpad to draw new digits and see the network in action
+        // note - important to scale the result down to 28x28 pixel image
     }
 
     // returns INDArray[] of pixels for each image ... array[0] is INDArray of pixels for Image 0, etc...
