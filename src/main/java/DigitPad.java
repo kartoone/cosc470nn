@@ -19,7 +19,14 @@ import javax.swing.JWindow;
  */
 public class DigitPad extends JWindow implements MouseListener, MouseMotionListener {
 
-    public Image image;         // the image for our window
+    class Image {
+        public byte imgbytes[][] = new byte[28][28];
+        Image (byte b[][]) {
+            this.imgbytes = b;
+        }
+    }
+
+    public Image image;            // the image for our window
     public double strokewidth;     // training dataset is 28x28 so no matter the height of the window 
     
     public DigitPad(int width, int height) {

@@ -34,6 +34,16 @@ public class Network {
         }
     }
 
+    // once this method is called, the SGD algorithm will be broken because the expected outputs will be the wrong shape
+    // assuming that the new layer is a different shape than the old outputlayer ...
+    // only thing that we can do is call "feedforward" and that should work correctly
+    public void addUntrainedLayer(INDArray w, INDArray b) {
+        biases = java.util.Arrays.copyOf(biases, biases.length+1);     // make room for the new layer
+        weights = java.util.Arrays.copyOf(weights, weights.length+1);
+        biases[biases.length-1] = b;    // add the new layer biases
+        weights[weights.length-1] = w;  // add the new layer weights
+    }
+
     // a is the input column vector (e.g., 784x1 for our image data)
     // think of "a" as starting out as the input layer activations
     // then it is being simultaneously fed as input to the next layer and then being overwritten as that new layer's activations
@@ -43,6 +53,19 @@ public class Network {
             INDArray b = biases[i];  // layer biases
             INDArray w = weights[i]; // weights from previous layer to current layer
             a = sigmoid(w.mmul(a).add(b)); //
+        }
+        return a;
+    }
+
+    // same as feedforward put print activations in last two layers ... helpful for debugging networks with untrained layer
+    public INDArray feedforward2(INDArray a) {
+        for (int i=0; i<biases.length; i++) { // whether we use biases or weights doesn't matter ... they have same length
+            INDArray b = biases[i];  // layer biases
+            INDArray w = weights[i]; // weights from previous layer to current layer
+            a = sigmoid(w.mmul(a).add(b)); //
+            if (i>=biases.length-2) {
+                System.out.println(a);
+            }
         }
         return a;
     }
