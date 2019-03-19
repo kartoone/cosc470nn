@@ -24,10 +24,10 @@ public class DigitRecognizerBinary {
         // setup the new weights and biases
         // biases at each bit simply need to be 0.99 based on assumption given in exercise ... i.e., if any output from previous layer is correct, then it should also trip the new output layer
         // weights need to be 1.0 for the bit position(s) that should be a 1 in the output layer
-        // [[ 0.0 0.0 0.0 0.0
-        //  [ 0.0 0.0 0.0 0.0
-        //  [ 0.0 0.0 1.0 1.0
-        //  [ 0.0 1.0 0.0 1.0 ...
+        // [[ 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0
+        //  [ 0.0 0.0 0.0 0.0 1.0 1.0 1.0 1.0 0.0 0.0
+        //  [ 0.0 0.0 1.0 1.0 0.0 0.0 1.0 1.0 0.0 0.0
+        //  [ 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0
         INDArray layerweights = Nd4j.zeros(4,10);
         for (int i=0; i<10; i++) {
             System.out.print(i+": ");
@@ -36,26 +36,53 @@ public class DigitRecognizerBinary {
             int bit1pos = (i&2) >> 1; // binary for 2 is 0010
             int bit0pos = i&1;      // binary for 1 is 0001
             System.out.println(bit3pos + "" + bit2pos + "" + bit1pos + "" + bit0pos);
-            layerweights.putScalar(0, i, bit3pos==0?-10:bit3pos*10);
-            layerweights.putScalar(1, i, bit2pos==0?-10:bit2pos*10);
-            layerweights.putScalar(2, i, bit1pos==0?-10:bit1pos*10);
-            layerweights.putScalar(3, i, bit0pos==0?-10:bit0pos*10);
+            layerweights.putScalar(0, i, bit3pos==0?-10:10);
+            layerweights.putScalar(1, i, bit2pos==0?-10:10);
+            layerweights.putScalar(2, i, bit1pos==0?-10:10);
+            layerweights.putScalar(3, i, bit0pos==0?-10:10);
         }
         System.out.println(layerweights);
         INDArray layerbiases = Nd4j.zeros( 4,1); // column vector of biases
         for (int i=0; i<4; i++) {
-            layerbiases.putScalar(i, 0,0.99);
+            layerbiases.putScalar(i, 0,0);
         }
         net.addUntrainedLayer(layerweights, layerbiases);
-        for (int i=0; i<10; i++) {
-            System.out.println("Label: " + training_data[1][i]);
-            net.feedforward2(training_data[0][i]); // first image ... output should be "5" in binary
+        int correct = 0;
+        for (int i=0; i<test_data[0].length; i++) {
+//            System.out.println("Label: " + test_data[1][i]);
+            INDArray answer = net.feedforward(test_data[0][i]); // first image ... output should be "5" in binary
+            if (answer.equalsWithEps(convertLabel(test_data[1][i]),0.3)) {
+                correct++;
+            }
         }
-
+        System.out.println(correct);
         // open our digitpad window to display the randomly generated image
         // showing the network's best guess "a"
         // and allow the user to interact with the digitpad to draw new digits and see the network in action
         // note - important to scale the result down to 28x28 pixel image
+    }
+
+    // convert 10 element "answer" to a 4 element equivalent "answer"
+    // i.e., if the answer was [0,0,0,0,0,1,0,0,0,0] then equivalent\
+    // answer would be [0, 1, 0, 1]
+    public static INDArray convertLabel(INDArray label) {
+        int digit = 0;
+        for (int i=0; i<label.rows(); i++) {
+            if (label.getDouble(i)>0) { // we found a 1.0
+                digit = i;
+                break;
+            }
+        }
+        int bitpos3 = (digit & 8) >> 3;
+        int bitpos2 = (digit & 4) >> 2;
+        int bitpos1 = (digit & 2) >> 1;
+        int bitpos0 = (digit & 1);
+        INDArray converted = Nd4j.zeros(4,1);
+        converted.putScalar(0,0,bitpos3);
+        converted.putScalar(1,0,bitpos2);
+        converted.putScalar(2,0,bitpos1);
+        converted.putScalar(3,0,bitpos0);
+        return converted;
     }
 
     // returns INDArray[] of pixels for each image ... array[0] is INDArray of pixels for Image 0, etc...
