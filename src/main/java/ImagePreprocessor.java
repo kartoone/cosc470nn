@@ -23,48 +23,46 @@ public class ImagePreprocessor {
                                    // this means that for each pixel in the image, there are three bytes stored in BLUE, GREEN, RED order
         System.out.println(bufferedImage.getType());
         System.out.println(bufferedImage.TYPE_3BYTE_BGR); // pixel bytes are BLUE, GREEN, RED for each pixel
-        // display image in window
-        displayImage(bufferedImage);
 
         // now let's investigate the layout of the image by changing up some bytes
         // let's set the top row to red
-        BufferedImage bufferedImage2 = ImageIO.read(new File("people.jpg"));
-        byte[] pixels2 = ((DataBufferByte) bufferedImage.getRaster().getDataBuffer()).getData();
-        for (int i=0; i<w; i++) {
-            pixels2[(i+1)*3-3] = 0;
-            pixels2[(i+1)*3-2] = 0;
-            pixels2[(i+1)*3-1] = -1; // this is 255 when treated as unsigned
+
+        // let's add a red border across the top
+        for (int p=0; p<w; p++) {
+            pixels[p*3+0] = 0; // -1 is 255 when unsigned
+            pixels[p*3+1] = 0;
+            pixels[p*3+2] = -1;
         }
 
-        // now let's set the right border to green
-        for (int i=0; i<h; i++) {
-            pixels2[w*3*(i+1)-3] = 0;
-            pixels2[w*3*(i+1)-2] = -1;
-            pixels2[w*3*(i+1)-1] = 0;
+        // let's add a blue border down the right
+        for (int p=1; p<=h; p++) {
+            pixels[p*w*3-3] = -1;
+            pixels[p*w*3-2] = 0;
+            pixels[p*w*3-1] = 0;
         }
 
-        // now let's set the left border to blue
-        for (int i=0; i<h; i++) {
-            pixels2[w*3*i] = -1;
-            pixels2[w*3*i+1] = 0;
-            pixels2[w*3*i+2] = 0;
+        // let's add a green border down the left
+        for (int p=0; p<h; p++) {
+            pixels[p*w*3+0] = 0;
+            pixels[p*w*3+1] = -1;
+            pixels[p*w*3+2] = 0;
         }
 
-        // now let's set the bottom border to yellow
-        for (int i=0; i<bufferedImage2.getWidth(); i++) {
-            pixels2[(h-1)*w*3+(i+1)*3-3] = 0;
-            pixels2[(h-1)*w*3+(i+1)*3-2] = -1;
-            pixels2[(h-1)*w*3+(i+1)*3-1] = -1; // this is 255 when treated as unsigned
+        // let's add a yellow border across the bottom
+        for (int p=0; p<w; p++) {
+            pixels[(h-1)*w*3+p*3+0] = 0; // -1 is 255 when unsigned
+            pixels[(h-1)*w*3+p*3+1] = -1;
+            pixels[(h-1)*w*3+p*3+2] = -1;
         }
 
-        displayImage(bufferedImage2);
+        displayImage(bufferedImage);
     }
 
     public static void displayImage(BufferedImage bufferedImage) {
         ImageIcon icon=new ImageIcon(bufferedImage);
         JFrame frame=new JFrame();
         frame.setLayout(new FlowLayout());
-        frame.setSize(bufferedImage.getWidth(),bufferedImage.getHeight()+60);
+        frame.setSize(bufferedImage.getWidth()+50,bufferedImage.getHeight()+80);
         JLabel lbl=new JLabel();
         lbl.setIcon(icon);
         frame.add(lbl);
