@@ -3,7 +3,8 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.io.File;
+import java.io.*;
+import java.math.BigInteger;
 
 public class ImagePreprocessor {
     public static void main(String[] args) throws Exception {
@@ -28,46 +29,112 @@ public class ImagePreprocessor {
         // now let's investigate the layout of the image by changing up some bytes
         // let's set the top row to red
 
+        System.out.println(unsigned[0]);
+        System.out.println(unsigned[1]);
+        System.out.println(unsigned[2]);
         // let's add a red border across the top
-        for (int p=0; p<w; p++) {
-            pixels[p*3+0] = 0; // -1 is 255 when unsigned
-            pixels[p*3+1] = 0;
-            pixels[p*3+2] = -1;
+        for (int x=0; x<w; x++) {
+            int p = bufferedImage.getRGB(x, 0);
+            int a = (p >> 24) & 255;
+            int r = (p >> 16) & 255;
+            int g = (p >> 8) & 255;
+            int b = p & 255;
+            int newp = a<<24 | 128<<16 | 0<<8 | 0;
+            bufferedImage.setRGB(x, 0, newp);
         }
 
-        // let's add a blue border down the right
-        for (int p=1; p<=h; p++) {
-            pixels[p*w*3-3] = -1;
-            pixels[p*w*3-2] = 0;
-            pixels[p*w*3-1] = 0;
-        }
+        int peoplepixels[][][] = new int[28][28][48];
 
-        // let's add a green border down the left
-        for (int p=0; p<h; p++) {
-            pixels[p*w*3+0] = 0;
-            pixels[p*w*3+1] = -1;
-            pixels[p*w*3+2] = 0;
-        }
+        double rightx=32;
+        double leftx=4;
+        double topy=7;
+        double bottomy=30;
+        double xinc = 37.5;
+        double yinc = 47.5;
 
-        // let's add a white border across the bottom
-        for (int p=0; p<w; p++) {
-            pixels[(h-1)*w*3+p*3+0] = -1; // -1 is 255 when unsigned
-            pixels[(h-1)*w*3+p*3+1] = -1;
-            pixels[(h-1)*w*3+p*3+2] = -1;
-        }
-
-        // now let's try to figure out dimensions of each image
-        // drawing red line between images
-        for (int i=0; i<h; i++) {
-            if (isBorder(pixels, w,i*w*3)) {
-                for (int p = 0; p < w; p++) {
-                    pixels[i * w * 3 + p * 3 + 0] = 0; // -1 is 255 when unsigned
-                    pixels[i * w * 3 + p * 3 + 1] = 0;
-                    pixels[i * w * 3 + p * 3 + 2] = -1;
+        int peoplei = 0;
+        for (int peoplex=0; peoplex<8; peoplex++) {
+            for (int peopley=0; peopley<6; peopley++) {
+                int leftside = (int)Math.round(leftx+peoplex*xinc);
+                int topside = (int)Math.round(topy+peopley*yinc);
+                for (int x=leftside; x<leftside+28; x++) {
+                    for (int y=topside; y<topside+28; y++) {
+                        peoplepixels[x-leftside][y-topside][peoplei] = bufferedImage.getRGB(x, y);
+                    }
                 }
+                BufferedImage peopleimg = new BufferedImage(28,28,BufferedImage.TYPE_3BYTE_BGR);
+                for (int x=0; x<28; x++) {
+                    for (int y=0; y<28; y++) {
+                        peopleimg.setRGB(x,y,peoplepixels[x][y][peoplei]);
+                    }
+                }
+                displayImage(peopleimg);
+                dumpImage(peopleimg, "people"+peoplei+".jpg");
+                peoplei++;
             }
         }
 
+        // write all the cropped people out to a single file
+        // binary file ...
+        //  first byte - width of each person
+        //  second byte - height of each person
+        //  third byte - number of people in the file
+        //  all the rest of the bytes are all the people pixels in row major order
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(new File ("croppedpeople.bin")));
+        out.write(0);
+        out.write(0);
+        out.write(0);
+        out.write(28);
+        out.write(0);
+        out.write(0);
+        out.write(0);
+        out.write(28);
+        out.write(0);
+        out.write(0);
+        out.write(0);
+        out.write(48);
+        for (int pi=0; pi<48; pi++) {
+            for (int x=0; x<28; x++) {
+                for (int y=0; y<28; y++) {
+                    byte buffer[] = intToByteArray(peoplepixels[x][y][pi]);
+                    out.write(buffer);
+                }
+            }
+        }
+        out.close();
+
+
+        // let's "find" the optimal place to crop person on the right
+        for (rightx=32; rightx<w; rightx+=37.5) {
+            for (int y = 0; y < h; y++) {
+                int cyanp = 255 << 24 | 0 << 16 | 255 << 8 | 255;
+                bufferedImage.setRGB((int)Math.round(rightx), y, cyanp);
+            }
+        }
+
+        // let's find the crop spot on the left
+        for (leftx=4; leftx<w; leftx+=37.5) {
+            for (int y = 0; y < h; y++) {
+                int cyanp = 255 << 24 | 0 << 16 | 255 << 8 | 255;
+                bufferedImage.setRGB((int)Math.round(leftx), y, cyanp);
+            }
+        }
+
+        // let's find the crop line for the top of each person
+        for (topy=7; topy<h; topy+=47.5) {
+            for (int x = 0; x < w; x++) {
+                int cyanp = 255 << 24 | 0 << 16 | 255 << 8 | 255;
+                bufferedImage.setRGB(x, (int)Math.round(topy), cyanp);
+            }
+        }
+
+        // let's find the crop line for the top of each person
+        for (bottomy=35; bottomy<h; bottomy+=47.5) {
+            for (int x = 0; x < w; x++) {
+                int cyanp = 255 << 24 | 0 << 16 | 255 << 8 | 255;
+                bufferedImage.setRGB(x, (int)Math.round(bottomy), cyanp);
+            }
+        }
 
         displayImage(bufferedImage);
 
@@ -80,6 +147,14 @@ public class ImagePreprocessor {
 //            unsigned[i] = pixels2[i*3]&255;
 //        }
 //        System.out.println(java.util.Arrays.toString(unsigned));
+    }
+
+    public static final byte[] intToByteArray(int value) {
+        return new byte[] {
+                (byte)(value >>> 24),
+                (byte)(value >>> 16),
+                (byte)(value >>> 8),
+                (byte)value};
     }
 
     public static boolean isBorder(byte pixels[], int w, int h) {
@@ -124,11 +199,15 @@ public class ImagePreprocessor {
         }
     }
 
+    public static void dumpImage(BufferedImage img, String filename) throws IOException {
+        ImageIO.write(img, "jpg", new File(filename));
+    }
+
     public static void displayImage(BufferedImage bufferedImage) {
         ImageIcon icon=new ImageIcon(bufferedImage);
         JFrame frame=new JFrame();
         frame.setLayout(new FlowLayout());
-        frame.setSize(bufferedImage.getWidth()+50,bufferedImage.getHeight()+80);
+        frame.setSize(bufferedImage.getWidth()+150,bufferedImage.getHeight()+80);
         JLabel lbl=new JLabel();
         lbl.setIcon(icon);
         frame.add(lbl);
