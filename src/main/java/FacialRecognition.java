@@ -13,39 +13,59 @@ public class FacialRecognition {
         File imagefile = new File("croppedpeople.bin");
         File dimagefile = new File("train-images-idx3-ubyte");
         File testimagefile = new File("t10k-images-idx3-ubyte");
-        INDArray ptrain_data[][] = new INDArray[][] { parsePeople(imagefile), allPeople(48, true) };
-        INDArray dtrain_data[][] = new INDArray[][] { DigitRecognizer.parseImageFile(dimagefile, 60000), allPeople(60000,false) };
-        INDArray training_data[][] = new INDArray[2][96];
-        INDArray test_data[][] = new INDArray[2][8];
+        INDArray ptrain_data[][] = new INDArray[][] { parsePeople(imagefile), allPeople(1756, true) };
+        INDArray dtrain_data[][] = new INDArray[][] { DigitRecognizer.parseImageFile(dimagefile, 1756), allPeople(1756,false) };
+        INDArray training_data[][] = new INDArray[2][1740*2];
+        INDArray test_data[][] = new INDArray[2][16*2];
         // all add the ptrain data since there is so little of it
         int j=0;
-        for (; j<48; j++) {
-            training_data[0][j] = ptrain_data[0][j];
-            training_data[1][j] = ptrain_data[1][j];
-        }
-
-        // now randomly fill out the remaining 48 spots from the handwriting digits images
-        for(; j<96; j++) {
-            int r = new java.util.Random().nextInt(60000);
-            training_data[0][j] = dtrain_data[0][r];
-            training_data[1][j] = dtrain_data[1][r];
+        for (; j<1740*2; j++) {
+            if (j<1740) {
+                training_data[0][j] = ptrain_data[0][j];
+                training_data[1][j] = ptrain_data[1][j];
+            } else {
+                training_data[0][j] = dtrain_data[0][j-1740];
+                training_data[1][j] = dtrain_data[1][j-1740];
+            }
         }
 
         // now randomly select test data from handwriting digits
-        for (j=0; j<8; j++) {
-            int r = new java.util.Random().nextInt(60000);
-            test_data[0][j] = dtrain_data[0][r];
-            test_data[1][j] = dtrain_data[1][r];
+        for (j=0; j<16*2; j++) {
+            if (j<16) {
+                test_data[0][j] = ptrain_data[0][1740 + j];
+                test_data[1][j] = ptrain_data[1][1740 + j];
+            } else {
+                test_data[0][j] = dtrain_data[0][1740 + j - 16];
+                test_data[1][j] = dtrain_data[1][1740 + j - 16];
+            }
         }
 
         Network net = new Network(new int[]{784, 5, 1});
 
         // train the network
-        net.SGD(training_data, 6, 8, 3.0, test_data);
+        net.SGD(training_data, 6, 12, 3.0, test_data);
+
+        // display biases
+        for (int i=1; i<net.num_layers; i++) {
+            System.out.println(net.biases[i-1]);
+        }
+
+        // display weights
+        for (int i=1; i<net.num_layers; i++) {
+            System.out.println(net.weights[i-1]);
+        }
 
         // let's run our network on randomly generated image
         INDArray input = Nd4j.rand(784,1);
         INDArray a = net.feedforward(input);
+        System.out.println(a);
+
+        // let's run it on a mostly empty random image
+        input = Nd4j.zeros(784,1);
+        for (int i=0; i<20; i++) {
+            input.putScalar((int)Math.random()*784,0,Math.random());
+        }
+        a = net.feedforward(input);
         System.out.println(a);
 
     }

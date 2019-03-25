@@ -71,7 +71,7 @@ public class ImagePreprocessor {
                 }
                 if (Math.random()<0.005)
                     displayImage(peopleimg);
-                dumpImage(peopleimg, "mugshots/ft"+pi+".jpg");
+                dumpImage(peopleimg, "mugshots/t/"+pi+".jpg");
                 pi++;
             }
         }

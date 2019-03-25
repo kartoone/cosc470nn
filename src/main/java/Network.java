@@ -79,6 +79,13 @@ public class Network {
         for (int i=0; i<test_data[0].length; i++) {
             INDArray x = test_data[0][i];
             INDArray y = test_data[1][i];
+            // debug for facial recognition
+            if (i<16) {
+                System.out.print("testing person: ");
+            } else {
+                System.out.print("testing digit: ");
+            }
+            System.out.println(feedforward(x));
             INDArray out = predict(feedforward(x));
             if (out.equals(y)) {
                 correct++;
