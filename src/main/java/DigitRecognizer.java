@@ -1,5 +1,10 @@
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.math.BigInteger;
 import java.io.*;
 
@@ -57,6 +62,7 @@ public class DigitRecognizer {
                 filein.read(colbytes);
                 imgbytes[row] = colbytes;
             }
+            dumpImage(imgbytes, "digit"+i); // write this out to our hd thumbnail folder
             int fi = 0; // use this index to flatten the 2d array into the 1d pixels array
             for(int row=0; row<rows; row++) {
                 for (int col=0; col<cols; col++) {
@@ -108,5 +114,32 @@ public class DigitRecognizer {
             }
         }
         return y;
+    }
+
+    public static void dumpImage(byte imgbytes[][], String fn) throws IOException {
+        int targetdim = 28;
+        BufferedImage img = new BufferedImage(targetdim, targetdim, BufferedImage.TYPE_3BYTE_BGR);
+        for (int x = 0; x < targetdim; x++) {
+            for (int y = 0; y < targetdim; y++) {
+                int pixelval = 255 << 24 | imgbytes[x][y] << 16 | imgbytes[x][y] << 8 | imgbytes[x][y];
+                img.setRGB(x, y, pixelval);
+            }
+        }
+        if (Math.random()<0.005) {
+            displayImage(img);
+        }
+        ImageIO.write(img, "jpg", new File("digits/" + fn + ".jpg"));
+    }
+
+    public static void displayImage(BufferedImage bufferedImage) {
+        ImageIcon icon=new ImageIcon(bufferedImage);
+        JFrame frame=new JFrame();
+        frame.setLayout(new FlowLayout());
+        frame.setSize(bufferedImage.getWidth()+150,bufferedImage.getHeight()+80);
+        JLabel lbl=new JLabel();
+        lbl.setIcon(icon);
+        frame.add(lbl);
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 }
