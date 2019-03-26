@@ -13,7 +13,7 @@ public class Network {
     public Network(int sizes[]) {
         System.out.println("Constructing neural network with " + sizes.length + " layers.");
         biases = new INDArray[sizes.length-1]; // minus 1 b/c input layer of neurons doesn't have biases
-        weights = new INDArray[sizes.length-1];
+        weights = new INDArray[sizes.length-1]; // minus 1 b/c output layer doesn't have weights
         num_layers = sizes.length;
         // init the individual layer biases
         for (int i=1; i<sizes.length; i++) {
