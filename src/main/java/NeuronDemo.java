@@ -14,17 +14,18 @@ public class NeuronDemo {
         double startingBias =  keyin.getDouble(false, 0.9, 0, 0, "Starting bias [default=0.9]? ");
         double eta =  keyin.getDouble(false, 0.15, 0, 0, "Learning rate [default=0.15]? ");
         int epochs =  keyin.getInteger(false, 300, 0, 0, "# Epochs [default=300]? ");
-        train(startingWeight, startingBias, eta, epochs);
+        int whichcost = keyin.getInteger( true, 1, 1, 2, "Which cost function [default=1]? ");
+        train(startingWeight, startingBias, eta, epochs, whichcost);
     }
 
     // stochastic gradient descent when batch size is 1 input and total number of inputs is also 1
     // in other words update the weight and bias immediately after calculating output for current weight and bias
-    private static void train(double startingWeight, double startingBias, double eta, int epochs) {
+    private static void train(double startingWeight, double startingBias, double eta, int epochs, int whichcost) {
         double w = startingWeight;
         double b = startingBias;
         for (int i=0; i<epochs; i++) {
             double a = calculateOutput(w, b);
-            double delta = costDerivative2(a);
+            double delta = whichcost==1?costDerivative(a):costDerivative2(a);
             // go ahead and immediately update the weight and bias by the result of the gradient descent
             // algorithm which has been heavily optimized for this specific problem as just the derivative of the cost function
             w += -eta*delta;
