@@ -1,6 +1,10 @@
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+// Adapted from http://neuralnetworksanddeeplearning.com/chap1.html
+// Michael A. Nielsen, "Neural Networks and Deep Learning", Determination Press, 2015
+// This work is licensed under a Creative Commons Attribution-NonCommercial 3.0 Unported License.
+
 /**
  * Represents the entire network as arrays of weights and biases. Assumes fully connected and feed-forward only.
  * This is a java port of Nielsen's python implementation of neural network for digit recognition.

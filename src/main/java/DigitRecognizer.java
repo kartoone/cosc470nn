@@ -62,7 +62,7 @@ public class DigitRecognizer {
                 filein.read(colbytes);
                 imgbytes[row] = colbytes;
             }
-            dumpImage(imgbytes, "digit"+i); // write this out to our hd thumbnail folder
+//            dumpImage(imgbytes, "digit"+i); // write this out to our thumbnail folder
             int fi = 0; // use this index to flatten the 2d array into the 1d pixels array
             for(int row=0; row<rows; row++) {
                 for (int col=0; col<cols; col++) {
@@ -131,9 +131,9 @@ public class DigitRecognizer {
         ImageIO.write(img, "jpg", new File("digits/" + fn + ".jpg"));
     }
 
-    public static void displayImage(BufferedImage bufferedImage) {
+    public static void displayImage(BufferedImage bufferedImage, String title) {
         ImageIcon icon=new ImageIcon(bufferedImage);
-        JFrame frame=new JFrame();
+        JFrame frame=new JFrame(title);
         frame.setLayout(new FlowLayout());
         frame.setSize(bufferedImage.getWidth()+150,bufferedImage.getHeight()+80);
         JLabel lbl=new JLabel();
@@ -141,5 +141,8 @@ public class DigitRecognizer {
         frame.add(lbl);
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+    public static void displayImage(BufferedImage bufferedImage) {
+        displayImage(bufferedImage,"Untitled");
     }
 }

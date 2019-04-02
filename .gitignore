@@ -14,3 +14,6 @@
      buildNumber.properties
      .mvn/timing.properties
      .mvn/wrapper/maven-wrapper.jar
+
+     # some data files not needed any more
+     mugshots/*

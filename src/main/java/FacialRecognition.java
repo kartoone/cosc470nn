@@ -1,6 +1,7 @@
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,25 +14,25 @@ public class FacialRecognition {
         File imagefile = new File("croppedpeople.bin");
         File dimagefile = new File("train-images-idx3-ubyte");
         File testimagefile = new File("t10k-images-idx3-ubyte");
-        INDArray ptrain_data[][] = new INDArray[][] { parsePeople(imagefile), allPeople(1756, true) };
-        INDArray dtrain_data[][] = new INDArray[][] { DigitRecognizer.parseImageFile(dimagefile, 1756), allPeople(1756,false) };
-        INDArray training_data[][] = new INDArray[2][1740*2];
-        INDArray test_data[][] = new INDArray[2][16*2];
+        INDArray ptrain_data[][] = new INDArray[][]{parsePeople(imagefile), allPeople(1756, true)};
+        INDArray dtrain_data[][] = new INDArray[][]{DigitRecognizer.parseImageFile(dimagefile, 1756), allPeople(1756, false)};
+        INDArray training_data[][] = new INDArray[2][1740 * 2];
+        INDArray test_data[][] = new INDArray[2][16 * 2];
         // all add the ptrain data since there is so little of it
-        int j=0;
-        for (; j<1740*2; j++) {
-            if (j<1740) {
+        int j = 0;
+        for (; j < 1740 * 2; j++) {
+            if (j < 1740) {
                 training_data[0][j] = ptrain_data[0][j];
                 training_data[1][j] = ptrain_data[1][j];
             } else {
-                training_data[0][j] = dtrain_data[0][j-1740];
-                training_data[1][j] = dtrain_data[1][j-1740];
+                training_data[0][j] = dtrain_data[0][j - 1740];
+                training_data[1][j] = dtrain_data[1][j - 1740];
             }
         }
 
         // now randomly select test data from handwriting digits
-        for (j=0; j<16*2; j++) {
-            if (j<16) {
+        for (j = 0; j < 16 * 2; j++) {
+            if (j < 16) {
                 test_data[0][j] = ptrain_data[0][1740 + j];
                 test_data[1][j] = ptrain_data[1][1740 + j];
             } else {
@@ -43,31 +44,55 @@ public class FacialRecognition {
         Network net = new Network(new int[]{784, 5, 1});
 
         // train the network
-        net.SGD(training_data, 6, 12, 3.0, test_data);
+        net.SGD(training_data, 20, 12, 3.0, test_data);
 
         // display biases
-        for (int i=1; i<net.num_layers; i++) {
-            System.out.println(net.biases[i-1]);
+        for (int i = 1; i < net.num_layers; i++) {
+            System.out.println(net.biases[i - 1]);
         }
 
         // display weights
-        for (int i=1; i<net.num_layers; i++) {
-            System.out.println(net.weights[i-1]);
+        for (int i = 1; i < net.num_layers; i++) {
+            System.out.println(net.weights[i - 1]);
         }
 
         // let's run our network on randomly generated image
-        INDArray input = Nd4j.rand(784,1);
+        INDArray input = Nd4j.rand(784, 1);
         INDArray a = net.feedforward(input);
         System.out.println(a);
+        displayImageArray(input,"rand");
 
         // let's run it on a mostly empty random image
-        input = Nd4j.zeros(784,1);
-        for (int i=0; i<20; i++) {
-            input.putScalar((int)Math.random()*784,0,Math.random());
+        input = Nd4j.zeros(784, 1);
+        for (int emptiness = 0; emptiness < 39; emptiness++) {
+            for (int i = 0; i < 20; i++) {
+                input.putScalar((int) (Math.random() * 784), 0, Math.random());
+            }
+            a = net.feedforward(input);
+            System.out.println(a);
+            displayImageArray(input,""+emptiness+":"+a);
         }
-        a = net.feedforward(input);
-        System.out.println(a);
+        displayImageArray(test_data[0][0],"tdperson");
+        displayImageArray(test_data[0][17],"tddigit");
+    }
 
+    // unflatten
+    // put the bytes into a buffered image
+    // then call DigitRecognizer display image
+    private static void displayImageArray(INDArray input, String title) {
+        int targetdim = 28;
+        BufferedImage bimage = new BufferedImage(targetdim, targetdim, BufferedImage.TYPE_INT_ARGB);
+        int pixels[][] = new int[targetdim][targetdim];
+        for (int row=0; row<targetdim; row++) {
+            for (int col=0; col<targetdim; col++) {
+                int pos = row*targetdim + col;
+                pixels[col][row] = (int) Math.round(255*input.getDouble(pos,0));
+                int p = pixels[col][row];
+                int newp = 255<<24 | p<<16 | p<<8 | p;
+                bimage.setRGB(row, col, newp);
+            }
+        }
+        DigitRecognizer.displayImage(bimage, title);
     }
 
     // create labels designating everyone as people
