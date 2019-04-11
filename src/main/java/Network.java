@@ -23,19 +23,19 @@ public class Network {
         for (int i=1; i<sizes.length; i++) {
             biases[i-1] = Nd4j.randn(sizes[i],1); // column vector of randomly generated biases for each neuron (sizes[i] neurons) in layer i
         }
-        for (int i=0; i<biases.length; i++) {
-            System.out.println("Layer " + (i+1) + " biases:");
-            System.out.println(biases[i]);
-        }
+//        for (int i=0; i<biases.length; i++) {
+//            System.out.println("Layer " + (i+1) + " biases:");
+//            System.out.println(biases[i]);
+//        }
 
         // init the individual layer weights (layer i rows x layer i-1 cols ... simplifies math)
         for (int i=1; i<sizes.length; i++) {
             weights[i-1] = Nd4j.randn(sizes[i],sizes[i-1]);
         }
-        for (int i=0; i<weights.length; i++) {
-            System.out.println("Layer " + (i+1) + " weights: " + java.util.Arrays.toString(weights[i].shape()));
-            System.out.println(weights[i]);
-        }
+//        for (int i=0; i<weights.length; i++) {
+//            System.out.println("Layer " + (i+1) + " weights: " + java.util.Arrays.toString(weights[i].shape()));
+//            System.out.println(weights[i]);
+//        }
     }
 
     // once this method is called, the SGD algorithm will be broken because the expected outputs will be the wrong shape
@@ -83,13 +83,6 @@ public class Network {
         for (int i=0; i<test_data[0].length; i++) {
             INDArray x = test_data[0][i];
             INDArray y = test_data[1][i];
-            // debug for facial recognition
-            if (i<16) {
-                System.out.print("testing person: ");
-            } else {
-                System.out.print("testing digit: ");
-            }
-            System.out.println(feedforward(x));
             INDArray out = predict(feedforward(x));
             if (out.equals(y)) {
                 correct++;
@@ -120,14 +113,14 @@ public class Network {
      * Test_data is same format as training_data but is evaluated after each epoch to display training improvement
      */
     public void SGD(INDArray training_data[][], int epochs, int batchsize, double eta, INDArray test_data[][]) {
-        int testdatasize = test_data[0].length;
-        // first shuffle the training data so that all our batches will be random order
+        SGD(training_data, epochs, batchsize, eta, test_data, true); // default to displaying epoch accuracy
+    }
+
+    public void SGD(INDArray training_data[][], int epochs, int batchsize, double eta, INDArray test_data[][], boolean displayepochaccuracy) {
+        int maxcorrect = -1; // init to negative value so we can appropriately update
+        int maxcorrecti = -1;
         for (int i=0; i<epochs; i++) {
-            // The math was correct, but here was the problem!!!
-            // I was shuffling the data independently, which loses the connection b/t
-            // the image data (x - training_data[0]) and the labels (y - training_data[1])
-//            training_data[0] = shuffle(training_data[0]);
-//            training_data[1] = shuffle(training_data[1]);
+            // first shuffle the training data so that all our batches will be random order
             training_data = shuffle(training_data);
             for (int j=0; j<(training_data[0].length-1)/batchsize; j++) {
                 INDArray batchx[] = java.util.Arrays.copyOfRange(training_data[0],batchsize*j, batchsize*(j+1));
@@ -136,9 +129,17 @@ public class Network {
                 update_mini_batch(batch, eta);
             }
             int correct = evaluate(test_data);
-            System.out.println(correct + " correct, epoch " + i);
+            if (displayepochaccuracy) {
+                System.out.println(correct + " correct, epoch " + i);
+            }
+            // see if this is max correct epoch
+            if (correct>maxcorrect) {
+                maxcorrect = correct;
+                maxcorrecti = i;
+            }
         }
-
+        // no matter what, let's display the maximum test accuracy and on which epoch it occurred
+        System.out.println("Max correct: " + maxcorrect + ", epoch " + maxcorrecti);
     }
 
     public void update_mini_batch(INDArray batch[][], double eta) {
@@ -190,7 +191,8 @@ public class Network {
             activations[i] = activation;
         }
         // activation will be referencing the last activation ... equiv to activations[-1]
-        INDArray delta = cost_derivative(activation, y).mul(sigmoid_prime(zs[zs.length-1]));
+//        INDArray delta = cost_derivative(activation, y).mul(sigmoid_prime(zs[zs.length-1]));
+        INDArray delta = cost_derivative(activation, y);
         nabla_b[nabla_b.length-1] = delta;
         nabla_w[nabla_w.length-1] = delta.mmul(activations[activations.length-2].transpose());
 

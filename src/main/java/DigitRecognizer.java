@@ -15,13 +15,31 @@ public class DigitRecognizer {
         File testlabelfile = new File("t10k-labels-idx1-ubyte");
         File testimagefile = new File("t10k-images-idx3-ubyte");
 
-        INDArray training_data[][] = new INDArray[][] { parseImageFile(imagefile, 60000), parseLabelFile(labelfile, 60000) };
-        INDArray test_data[][] =  new INDArray[][] { parseImageFile(testimagefile, 10000), parseLabelFile(testlabelfile, 10000) };
+        INDArray training_data[][] = new INDArray[][]{parseImageFile(imagefile, 60000), parseLabelFile(labelfile, 60000)};
+        INDArray validation_data[][] = new INDArray[2][10000];
+        for (int i = 50000; i < 60000; i++) {
+            validation_data[0][i - 50000] = training_data[0][i];
+            validation_data[1][i - 50000] = training_data[1][i];
+        }
+        INDArray shortertraining_data[][] = new INDArray[2][50000];
+        for (int i = 0; i < 50000; i++) {
+            shortertraining_data[0][i] = training_data[0][i];
+            shortertraining_data[1][i] = training_data[1][i];
+        }
+        training_data = shortertraining_data;
+        INDArray test_data[][] = new INDArray[][]{parseImageFile(testimagefile, 10000), parseLabelFile(testlabelfile, 10000)};
 
-        Network net = new Network(new int[]{784, 30, 10});
+        Network net = null;
 
         // train the network
-        net.SGD(training_data, 2, 10, 3.0, test_data);
+        for (int epochs = 3; epochs <= 3; epochs = epochs + 10) {
+            for (int batchsize = 20; batchsize <= 20; batchsize = batchsize + 10) {
+                net = new Network(new int[]{784, 30, 10});
+                System.out.printf("Epochs: %d, Batchsize: %d\n", epochs, batchsize);
+//                net.SGD(training_data, epochs, batchsize, 3.0, validation_data);
+                net.SGD(training_data, epochs, batchsize, 0.5, validation_data, false);
+            }
+        }
 
         // let's run our network on randomly generated image
         INDArray input = Nd4j.rand(784,1);
