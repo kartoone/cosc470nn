@@ -14,10 +14,10 @@ import java.util.Scanner;
 public class DIFProcessing {
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        Scanner filein = new Scanner(new File("DiF_v1b.csv"));
+        Scanner filein = new Scanner(new File("DiF_v1b-sm.csv"));
         int count = 0;
-        int start=6405;
-        while (filein.hasNextLine() && count<60000) {
+        int start=0;
+        while (filein.hasNextLine()) {
             String line = filein.nextLine();
             count++;
             if (count<start) {
