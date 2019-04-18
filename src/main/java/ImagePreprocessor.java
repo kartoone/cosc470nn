@@ -49,7 +49,7 @@ public class ImagePreprocessor {
         if (limit<0) {
             limit = 0;
             for (File mf : mugshotfiles) {
-                if (!mf.isDirectory()) {
+                if (!mf.isDirectory() && mf.getName().contains(".png")) {
                     limit++; // only count the files (not the directories)
                 }
             }
@@ -61,17 +61,17 @@ public class ImagePreprocessor {
         // have to use two different indices here since mugshotfiles[i] could be a directory
         int pi = 0;
         for (int i=0; pi<limit; i++) {
-            if (!mugshotfiles[i].isDirectory()) {
+            if (!mugshotfiles[i].isDirectory() && mugshotfiles[i].getName().contains(".png")) {
                 peoplepixels[pi] = processFile(mugshotfiles[i], targetdim);
                 BufferedImage peopleimg = new BufferedImage(targetdim, targetdim, BufferedImage.TYPE_3BYTE_BGR);
-                for (int x=0; x<targetdim; x++) {
-                    for (int y=0; y<targetdim; y++) {
-                        peopleimg.setRGB(x,y,peoplepixels[pi][x][y]);
+                for (int x = 0; x < targetdim; x++) {
+                    for (int y = 0; y < targetdim; y++) {
+                        peopleimg.setRGB(x, y, peoplepixels[pi][x][y]);
                     }
                 }
-                if (Math.random()<0.005)
+                if (Math.random() < 0.005)
                     displayImage(peopleimg);
-                dumpImage(peopleimg, "mugshots/t/"+pi+".jpg");
+                dumpImage(peopleimg, "mugshots/t/" + pi + ".jpg");
                 pi++;
             }
         }
