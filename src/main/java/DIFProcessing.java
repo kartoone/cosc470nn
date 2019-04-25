@@ -28,15 +28,15 @@ public class DIFProcessing {
             System.out.println(urlstr);
             String vurlstr = checkUrl(urlstr);
             if (vurlstr==null) {
-                continue; // skip this one if the url throws an exception ... ie. 404 file not found
+//                continue; // skip this one if the url throws an exception ... ie. 404 file not found
             }
             URL url = new URL(vurlstr);
             if (download(vurlstr, "../dif")==null) {
                 System.out.println("skipping");
-                continue; // skip this one if we can't download it for some reason
+//                continue; // skip this one if we can't download it for some reason
             }
             Thread.sleep(100);
-            if (Math.random()<0.0001) {
+            if (Math.random()<1) {
                 Image image = ImageIO.read(url);
                 int abunchofints[] = new int[142];
                 for (int i = 0; i < 140; i++) {

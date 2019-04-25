@@ -32,8 +32,8 @@ public class DigitRecognizer {
         Network net = null;
 
         // train the network
-        for (int epochs = 3; epochs <= 3; epochs = epochs + 10) {
-            for (int batchsize = 20; batchsize <= 20; batchsize = batchsize + 10) {
+        for (int epochs = 10; epochs <= 300; epochs = epochs + 10) {
+            for (int batchsize = 20; batchsize <= 100; batchsize = batchsize + 10) {
                 net = new Network(new int[]{784, 30, 10});
                 System.out.printf("Epochs: %d, Batchsize: %d\n", epochs, batchsize);
 //                net.SGD(training_data, epochs, batchsize, 3.0, validation_data);
