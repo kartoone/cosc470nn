@@ -1,6 +1,9 @@
 # any solution file
 *sol*    
 
+__pycache__/
+__pycache__/*
+
 # ide/os specific files
 .idea/
 .idea/*
