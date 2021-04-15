@@ -133,7 +133,8 @@ class Network(object):
             monitor_evaluation_accuracy=False,
             monitor_training_cost=False,
             monitor_training_accuracy=False,
-            early_stopping_n = 0):
+            early_stopping_n = 0,
+            test_data=None):
         """Train the neural network using mini-batch stochastic gradient
         descent.  The ``training_data`` is a list of tuples ``(x, y)``
         representing the training inputs and the desired outputs.  The
@@ -170,6 +171,7 @@ class Network(object):
 
         evaluation_cost, evaluation_accuracy = [], []
         training_cost, training_accuracy = [], []
+        test_cost, test_accuracy = [], []
         for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
@@ -197,6 +199,13 @@ class Network(object):
                 accuracy = self.accuracy(evaluation_data)
                 evaluation_accuracy.append(accuracy)
                 print("Accuracy on evaluation data: {} / {}".format(self.accuracy(evaluation_data), n_data))
+            if test_data:
+                accuracy = self.accuracy(test_data)
+                cost = self.total_cost(test_data, lmbda, convert=True)
+                test_cost.append(cost)
+                test_accuracy.append(accuracy)
+                print("Cost on test data: {}".format(cost))
+                print("Accuracy on test data: {} / {}".format(accuracy, n_data))
 
             # Early stopping:
             if early_stopping_n > 0:
@@ -212,7 +221,8 @@ class Network(object):
                     return evaluation_cost, evaluation_accuracy, training_cost, training_accuracy
 
         return evaluation_cost, evaluation_accuracy, \
-            training_cost, training_accuracy
+            training_cost, training_accuracy, \
+            test_cost, test_accuracy
 
     def update_mini_batch(self, mini_batch, eta, lmbda, n):
         """Update the network's weights and biases by applying gradient

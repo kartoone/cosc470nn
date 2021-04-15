@@ -43,6 +43,7 @@ test_data = list(test_data)
 origtraining_data = copy.deepcopy(training_data)
 
 xvals = range(0,102,2)
+#xvals = range(0,110,10)
 yvalsoverall = []
 yvalsdigits = [[] for _ in range(10)]
 for strip in xvals:
@@ -89,16 +90,6 @@ for i, yvalsdigit in enumerate(yvalsdigitsno3s):
 
 ax.legend([0, 1, 2, 4, 5, 6, 7, 8, 9],loc=3)
 ax.set_xlabel("percentage of 3s removed - omitting 3s to see other digits better")
-ax.set_ylabel("accuracy")
-
-# now looking at the per digit classification showing 0s, 1s, 5s, and 8s only
-yvalsdigitsinteresting = yvalsdigits[0:2] + [yvalsdigits[5]] + [yvalsdigits[8]]
-fig, ax = plt.subplots()
-for i, yvalsdigit in enumerate(yvalsdigitsinteresting):
-    ax.plot(xvals, yvalsdigit)
-
-ax.legend([0, 1, 5, 8],loc=3)
-ax.set_xlabel("percentage of 3s removed - only showing interesting digits")
 ax.set_ylabel("accuracy")
 
 # determine overall accuracy at each strip stage for all digits excluding the 3s
