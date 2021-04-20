@@ -65,8 +65,7 @@ ax.set_ylabel("validation_data accuracy")
 exit
 
 # solution 3 - regularization
-net.SGD(training_data, 1, mini_batch_size, 0.5, 
-            validation_data, test_data, lmbda=0.1)
+net.SGD(training_data, 1, mini_batch_size, 0.5, evaluation_data=validation_data, test_data=test_data, lmbda=0.1)
 
 
 # all three solutions applied together (really, it's just the second two since we aren't stopping early)
