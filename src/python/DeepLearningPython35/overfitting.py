@@ -62,10 +62,10 @@ ax.plot(xvals,yvals_testdata)
 ax.legend(["training_data accuracy", "validation_data accuracy", "test_data accuracy"])
 ax.set_xlabel("epoch")
 ax.set_ylabel("validation_data accuracy")
-exit
 
 # solution 3 - regularization
-net.SGD(training_data, 1, mini_batch_size, 0.5, evaluation_data=validation_data, test_data=test_data, lmbda=0.1)
+net = network2.Network([784, 30, 10], cost=network2.CrossEntropyCost)
+evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(training_data, 1, mini_batch_size, 0.5, evaluation_data=validation_data, test_data=test_data, lmbda=0.1)
 
 
 # all three solutions applied together (really, it's just the second two since we aren't stopping early)
