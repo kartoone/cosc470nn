@@ -1,5 +1,7 @@
 # Start gpu_test.py
 # From http://deeplearning.net/software/theano/tutorial/using_gpu.html#using-gpu
+# INSTRUCTIONS ON HOW TO RUN
+
 from theano import function, config, shared, sandbox
 import theano.tensor as T
 import numpy
