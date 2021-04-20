@@ -50,7 +50,7 @@ expanded_training_data = list(expanded_training_data)
 validation_data = list(validation_data)
 test_data = list(test_data)
 net = network2.Network([784, 30, 10], cost=network2.CrossEntropyCost)
-evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(expanded_training_data, 50, 10, 0.5, evaluation_data=validation_data,monitor_evaluation_accuracy=True,test_data=test_data)
+evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(expanded_training_data, 50, 10, 0.5, evaluation_data=validation_data,monitor_training_accuracy=True,monitor_evaluation_accuracy=True,test_data=test_data)
 xvals = range(len(evaluation_accuracy))
 yvals_trainingdata = convertAccuracies(training_accuracy, len(expanded_training_data))
 yvals_validationdata = convertAccuracies(evaluation_accuracy, len(validation_data))
@@ -65,7 +65,7 @@ ax.set_ylabel("accuracy")
 
 # solution 3 - regularization
 net = network2.Network([784, 30, 10], cost=network2.CrossEntropyCost)
-evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(training_data, 50, mini_batch_size, 0.5, evaluation_data=validation_data, test_data=test_data, lmbda=0.1)
+evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(training_data, 50, mini_batch_size, 0.5, evaluation_data=validation_data,monitor_training_accuracy=True, monitor_evaluation_accuracy=True, test_data=test_data, lmbda=0.1)
 
 # all three solutions applied together
 
