@@ -30,9 +30,8 @@ training_data = list(training_data)
 validation_data = list(validation_data)
 test_data = list(test_data)
 net = network2.Network([784, 30, 10], cost=network2.CrossEntropyCost)
-evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(training_data, 50, 10, 0.5, evaluation_data=validation_data,monitor_training_accuracy=True,monitor_evaluation_accuracy=True,test_data=test_data)
+evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(training_data, 50, 10, 0.5, evaluation_data=validation_data,monitor_training_accuracy=True,monitor_evaluation_accuracy=True,test_data=test_data,early_stopping_n=10)
 fig, ax = plt.subplots()
-
 xvals = range(len(evaluation_accuracy))
 yvals_trainingdata = convertAccuracies(training_accuracy, len(training_data))
 yvals_validationdata = convertAccuracies(evaluation_accuracy, len(validation_data))
@@ -41,9 +40,9 @@ ax.plot(xvals,yvals_trainingdata)
 ax.plot(xvals,yvals_validationdata)
 ax.plot(xvals,yvals_testdata)
 ax.legend(["training_data accuracy", "validation_data accuracy", "test_data accuracy"])
+fig.set_title("SOL1: EARLY STOPPING")
 ax.set_xlabel("epoch")
-ax.set_ylabel("validation_data accuracy")
-
+ax.set_ylabel("accuracy")
 
 # solution 2 to the "overfitting problem" - expand the training dataset
 expanded_training_data, validation_data, test_data = mnist_loader.load_data_wrapper("mnist_expanded.pkl.gz")
@@ -60,13 +59,13 @@ ax.plot(xvals,yvals_trainingdata)
 ax.plot(xvals,yvals_validationdata)
 ax.plot(xvals,yvals_testdata)
 ax.legend(["training_data accuracy", "validation_data accuracy", "test_data accuracy"])
+fig.set_title("SOL2: EXPANDED TRAINING DATA")
 ax.set_xlabel("epoch")
-ax.set_ylabel("validation_data accuracy")
+ax.set_ylabel("accuracy")
 
 # solution 3 - regularization
 net = network2.Network([784, 30, 10], cost=network2.CrossEntropyCost)
-evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(training_data, 1, mini_batch_size, 0.5, evaluation_data=validation_data, test_data=test_data, lmbda=0.1)
+evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy = net.SGD(training_data, 50, mini_batch_size, 0.5, evaluation_data=validation_data, test_data=test_data, lmbda=0.1)
 
-
-# all three solutions applied together (really, it's just the second two since we aren't stopping early)
+# all three solutions applied together
 
