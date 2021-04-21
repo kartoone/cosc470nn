@@ -218,7 +218,7 @@ class Network(object):
 
                 if (no_accuracy_change == early_stopping_n):
                     print("Early-stopping: No accuracy change in last epochs: {}".format(early_stopping_n))
-                    return evaluation_cost, evaluation_accuracy, training_cost, training_accuracy
+                    return evaluation_cost, evaluation_accuracy, training_cost, training_accuracy, test_cost, test_accuracy
 
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy, \
