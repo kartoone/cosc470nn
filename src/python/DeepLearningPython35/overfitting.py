@@ -89,7 +89,7 @@ ax.set_ylabel("accuracy")
 
 
 
-mega_ax.legend("sol1", "sol2", "sol3", "sol4")
+mega_ax.legend(["sol1", "sol2", "sol3", "sol4"])
 mega_ax.set_title("OVERALL COMPARISON OF TEST_DATA ACCURACY")
 mega_ax.set_xlabel("epoch")
 mega_ax.set_ylabel("accuracy")
