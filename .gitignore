@@ -1,5 +1,6 @@
 # any solution file
 *sol*    
+workspace.ini
 
 __pycache__/
 __pycache__/*
