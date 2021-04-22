@@ -131,6 +131,14 @@ class Network(object):
                 self.y:
                 training_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
             })
+        training_mb_accuracy = theano.function(
+            [i], self.layers[-1].accuracy(self.y),
+            givens={
+                self.x:
+                training_x[i*self.mini_batch_size: (i+1)*self.mini_batch_size],
+                self.y:
+                training_y[i*self.mini_batch_size: (i+1)*self.mini_batch_size]
+            })
         validate_mb_accuracy = theano.function(
             [i], self.layers[-1].accuracy(self.y),
             givens={
@@ -155,6 +163,12 @@ class Network(object):
             })
         # Do the actual training
         best_validation_accuracy = 0.0
+        
+        # save (and eventually return) the accuracies
+        training_accuracies = []
+        validation_accuracies = []
+        test_accuracies = []
+        
         for epoch in range(epochs):
             for minibatch_index in range(num_training_batches):
                 iteration = num_training_batches*epoch+minibatch_index
@@ -162,23 +176,27 @@ class Network(object):
                     print("Training mini-batch number {0}".format(iteration))
                 cost_ij = train_mb(minibatch_index)
                 if (iteration+1) % num_training_batches == 0:
+                    training_accuracy = np.mean(
+                        [training_mb_accuracy(j) for j in range(num_validation_batches)])
                     validation_accuracy = np.mean(
                         [validate_mb_accuracy(j) for j in range(num_validation_batches)])
-                    print("Epoch {0}: validation accuracy {1:.2%}".format(
-                        epoch, validation_accuracy))
+                    test_accuracy = np.mean(
+                        [test_mb_accuracy(j) for j in range(num_test_batches)])
+                    training_accuracies.append(training_accuracy)
+                    validation_accuracies.append(validation_accuracy)
+                    test_accuracies.append(test_accuracy)
+                    print("Epoch {0}: training accuracy {1:.2%} validation accuracy {2:.2%} test_data accuracy {3:.2%}".format(
+                        epoch, training_accuracy, validation_accuracy, test_accuracy))
                     if validation_accuracy >= best_validation_accuracy:
                         print("This is the best validation accuracy to date.")
                         best_validation_accuracy = validation_accuracy
-                        best_iteration = iteration
-                        if test_data:
-                            test_accuracy = np.mean(
-                                [test_mb_accuracy(j) for j in range(num_test_batches)])
-                            print('The corresponding test accuracy is {0:.2%}'.format(
-                                test_accuracy))
+                        best_iteration = epoch
+
         print("Finished training network.")
-        print("Best validation accuracy of {0:.2%} obtained at iteration {1}".format(
-            best_validation_accuracy, best_iteration))
-        print("Corresponding test accuracy of {0:.2%}".format(test_accuracy))
+        print("Best validation accuracy of {0:.2%} obtained at iteration {1}".format(validation_accuracies[best_iteration], best_iteration))
+        print("Corresponding test accuracy of {0:.2%}".format(test_accuracies[best_iteration]))
+        
+        return [training_accuracies, validation_accuracies, test_accuracies]
 
 #### Define layer types
 
