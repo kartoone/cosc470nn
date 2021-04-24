@@ -196,7 +196,7 @@ class Network(object):
         print("Best validation accuracy of {0:.2%} obtained at iteration {1}".format(validation_accuracies[best_iteration], best_iteration))
         print("Corresponding test accuracy of {0:.2%}".format(test_accuracies[best_iteration]))
         
-        return [training_accuracies, validation_accuracies, test_accuracies]
+        return [training_accuracies, validation_accuracies, test_accuracies, best_iteration]
 
 #### Define layer types
 
