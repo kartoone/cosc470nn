@@ -69,7 +69,7 @@ ax.plot(xvals,yvals_trainingdata)                 # don't plot anything yet!
 ax.plot(xvals,yvals_validationdata)               # wait until you have yvals100_testdata, yvals50_testdata, yvals30_testdata, and yvals15_testdata 
 ax.plot(xvals,yvals30_testdata)                   # KEEP THIS LINE!
 ax.legend(["training_data accuracy", "validation_data accuracy", "test_data accuracy"])    # UPDATE THIS LEGEND AFTER YOU RUN THE OTHER CONFIGS
-ax.set_title("SIMPLE NETWORK - 30 hidden neurons")  # update the title to just "SIMPLE NETWORK"
+ax.set_title("SIMPLE NETWORK\n{0:.0f}s, {1:.3f}% accuracy @ epoch {2}".format(elapsed,test_accuracy[bestepoch]*100,bestepoch))
 ax.set_xlabel("epoch")
 ax.set_ylabel("accuracy")
 

@@ -77,7 +77,7 @@ ax.plot(xvals,yvals_trainingdata)
 ax.plot(xvals,yvals_validationdata)
 ax.plot(xvals,yvals_testdata)
 ax.legend(["training_data accuracy", "validation_data accuracy", "test_data accuracy"])
-ax.set_title("BEST KNOWN DEEP NETWORK")
+ax.set_title("BEST KNOWN DEEP NETWORK\n{0:.0f}s, {1:.3f}% accuracy @ epoch {2}".format(elapsed,test_accuracy[bestepoch]*100,bestepoch))
 ax.set_xlabel("epoch")
 ax.set_ylabel("accuracy")
 

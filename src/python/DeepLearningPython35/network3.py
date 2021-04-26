@@ -177,7 +177,7 @@ class Network(object):
                 cost_ij = train_mb(minibatch_index)
                 if (iteration+1) % num_training_batches == 0:
                     training_accuracy = np.mean(
-                        [training_mb_accuracy(j) for j in range(num_validation_batches)])
+                        [training_mb_accuracy(j) for j in range(num_training_batches)])  # bug fix - was num_validation_batches
                     validation_accuracy = np.mean(
                         [validate_mb_accuracy(j) for j in range(num_validation_batches)])
                     test_accuracy = np.mean(
