@@ -37,3 +37,16 @@ ax.legend(numpoints=1)
 ax.set_xlabel("elapsed time")
 ax.set_ylabel("accuracy")
 ax.set_title("time vs accuracy")
+
+# eleven different markers for the eleven results
+fig, ax = plt.subplots()
+for i, marker in enumerate(['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd']):
+    if i<len(results):
+        xval = results[i]["epoch"]
+        yval = results[i]["accuracy"]
+        label = results[i]["config"]
+        ax.plot([xval],[yval],marker,label=label)
+ax.legend(numpoints=1)
+ax.set_xlabel("best epoch")
+ax.set_ylabel("accuracy")
+ax.set_title("best epoch vs accuracy")
